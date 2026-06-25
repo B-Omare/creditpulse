@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# CreditPulse specific
+data/raw/
+data/processed/
+data/simulated/
+models/
+.env
+chroma_db/
