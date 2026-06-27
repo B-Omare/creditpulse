@@ -1,20 +1,21 @@
 """
-Phase 7 — FastAPI application for CreditPulse.
+Phase 7 — FastAPI application for Credit Risk Intelligence.
 Serves credit risk predictions via REST API.
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+import logging
 import pickle
 from pathlib import Path
+
 import numpy as np
-import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="CreditPulse API",
+    title="Credit Risk Intelligence API",
     description="Causal AI credit risk assessment for East African markets",
     version="0.1.0",
 )
@@ -29,11 +30,15 @@ app.add_middleware(
 
 class BorrowerFeatures(BaseModel):
     age_years: float = Field(..., ge=18, le=80, description="Borrower age in years")
-    employment_years: float = Field(..., ge=0, description="Years in current employment")
+    employment_years: float = Field(
+        ..., ge=0, description="Years in current employment"
+    )
     amt_income_total: float = Field(..., gt=0, description="Annual income in KES")
     amt_credit: float = Field(..., gt=0, description="Requested loan amount in KES")
     amt_annuity: float = Field(..., gt=0, description="Monthly repayment amount in KES")
-    ext_source_mean: float = Field(None, ge=0, le=1, description="Average external credit score (0-1)")
+    ext_source_mean: float = Field(
+        None, ge=0, le=1, description="Average external credit score (0-1)"
+    )
     cnt_children: int = Field(0, ge=0, description="Number of dependent children")
 
 
@@ -64,28 +69,32 @@ def load_model(name: str, path: Path) -> bool:
             MODEL_CACHE[name] = pickle.load(f)
         return True
     except FileNotFoundError:
-        logger.warning(f"Model not found: {path}")
+        logger.warning("Model not found: %s", path)
         return False
 
 
 @app.on_event("startup")
-async def startup():
+async def startup() -> None:
     load_model("xgboost", Path("models/xgboost_model.pkl"))
     load_model("bayesian", Path("models/bayesian_model.pkl"))
     load_model("survival", Path("models/survival_model.pkl"))
 
 
 @app.get("/health", response_model=HealthResponse)
-async def health():
+async def health() -> HealthResponse:
     return HealthResponse(
         status="ok",
         version="0.1.0",
-        models_loaded={k: k in MODEL_CACHE for k in ["xgboost", "bayesian", "survival"]},
+        models_loaded={
+            k: k in MODEL_CACHE for k in ["xgboost", "bayesian", "survival"]
+        },
     )
 
 
 @app.post("/predict", response_model=CreditDecision)
-async def predict(borrower: BorrowerFeatures, borrower_id: str = "unknown"):
+async def predict(
+    borrower: BorrowerFeatures, borrower_id: str = "unknown"
+) -> CreditDecision:
     credit_income_ratio = borrower.amt_credit / (borrower.amt_income_total + 1)
     annuity_income_ratio = borrower.amt_annuity / (borrower.amt_income_total + 1)
     ext_source = borrower.ext_source_mean if borrower.ext_source_mean is not None else 0.5
@@ -114,7 +123,9 @@ async def predict(borrower: BorrowerFeatures, borrower_id: str = "unknown"):
         n_feats = len(feat_names)
         pd_mean = float(model.predict_proba(features[:, :n_feats])[:, 1][0])
     else:
-        pd_mean = 1 / (1 + np.exp(-(credit_income_ratio - 0.5) * 3 + (ext_source - 0.5) * (-2)))
+        pd_mean = float(
+            1 / (1 + np.exp(-(credit_income_ratio - 0.5) * 3 + (ext_source - 0.5) * (-2)))
+        )
 
     pd_lower = max(0.0, pd_mean - 0.08)
     pd_upper = min(1.0, pd_mean + 0.08)
@@ -139,7 +150,7 @@ async def predict(borrower: BorrowerFeatures, borrower_id: str = "unknown"):
     if credit_income_ratio > 5:
         risk_factors.append(f"High credit-to-income ratio ({credit_income_ratio:.1f}x)")
     if annuity_income_ratio > 0.4:
-        risk_factors.append(f"Annuity burden exceeds 40% of income")
+        risk_factors.append("Annuity burden exceeds 40% of income")
     if ext_source < 0.3:
         risk_factors.append("Low external credit score")
     if borrower.employment_years < 1:
@@ -150,7 +161,11 @@ async def predict(borrower: BorrowerFeatures, borrower_id: str = "unknown"):
     explanation = (
         f"PD of {pd_mean:.1%} (95% CI: {pd_lower:.1%}–{pd_upper:.1%}). "
         f"IFRS 9 Stage {stage}. ECL: KES {ecl:,.0f}. "
-        f"{'No significant risk factors.' if not risk_factors else 'Key drivers: ' + '; '.join(risk_factors[:2]) + '.'}"
+        + (
+            "No significant risk factors."
+            if not risk_factors
+            else "Key drivers: " + "; ".join(risk_factors[:2]) + "."
+        )
     )
 
     return CreditDecision(
@@ -167,7 +182,7 @@ async def predict(borrower: BorrowerFeatures, borrower_id: str = "unknown"):
 
 
 @app.get("/explain/{borrower_id}")
-async def explain(borrower_id: str):
+async def explain(borrower_id: str) -> dict:
     return {
         "borrower_id": borrower_id,
         "note": "Submit borrower features to /predict to get a full SHAP-based explanation.",
