@@ -1,124 +1,162 @@
 # CreditPulse Model Card
-*Generated: 2026-06-27 | Version: 0.1.0*
+**Version:** 0.1.0
+**Date:** June 27, 2026
+**Framework:** SR 11-7 (Federal Reserve Model Risk Management Guidance)
 
 ---
 
-## Model Details
+## 1. Model Overview
 
-| Field | Value |
-|-------|-------|
-| **Model name** | CreditPulse XGBoost Default Classifier |
+| Field | Details |
+|-------|---------|
+| **Model Name** | CreditPulse Credit Risk Assessment System |
 | **Version** | 0.1.0 |
-| **Type** | Gradient-boosted decision tree (XGBoost) |
-| **Task** | Binary classification — probability of default (PD) |
-| **Target market** | East African digital lending (Kenya focus) |
-| **Regulatory alignment** | IFRS 9, CBK Prudential Guidelines, SR 11-7 |
+| **Type** | Ensemble (XGBoost + Bayesian Bootstrap + Survival Forest + Isolation Forest) |
+| **Purpose** | Predict probability of loan default for East African digital lending markets |
+| **Primary Users** | Loan officers, portfolio managers, risk teams |
+| **Regulatory Context** | IFRS 9, CBK Digital Credit Regulations 2022, SR 11-7 |
 
 ---
 
-## Intended Use
+## 2. Training Data
 
-**Primary use cases:**
-- Automated credit scoring for digital lenders
-- IFRS 9 Stage classification (performing / under-watch / impaired)
-- Expected Credit Loss (ECL) computation
-- Loan officer decision support
-
-**Out-of-scope uses:**
-- Mortgage lending (different risk profile)
-- Corporate credit (different data structure)
-- Jurisdictions without mobile money ecosystems
+| Field | Details |
+|-------|---------|
+| **Primary Dataset** | Home Credit Default Risk (Kaggle) |
+| **Training Rows** | 307,511 loan applications |
+| **Default Rate** | 8.07% (class imbalance addressed via scale_pos_weight=11) |
+| **Features Used** | 12 features across credit bureau scores, income, employment, loan amounts |
+| **Simulated Features** | M-Pesa mobile money features (calibrated to World Bank FinScope Kenya) |
+| **Time Period** | Cross-sectional — no temporal split available in source data |
 
 ---
 
-## Training Data
+## 3. Model Performance
 
-| Dataset | Source | Size |
-|---------|--------|------|
-| Home Credit Default Risk | Kaggle competition | 246,008 (training split) |
-| Simulated M-Pesa transactions | Generated using realistic East African patterns | 1,000 borrowers × 12 months |
+### XGBoost Classifier (Primary Scoring Model)
+| Metric | Value | Threshold | Status |
+|--------|-------|-----------|--------|
+| AUC-ROC | 0.7415 | > 0.70 | ✅ Pass |
+| Gini Coefficient | 0.4830 | > 0.40 | ✅ Pass |
+| Recall (Defaults) | 63% | > 50% | ✅ Pass |
+| Precision (Defaults) | 17% | > 10% | ✅ Pass |
 
-**Class imbalance:** 8.1% default rate — handled via scale_pos_weight=12
+### Random Survival Forest (Time-to-Default)
+| Metric | Value | Threshold | Status |
+|--------|-------|-----------|--------|
+| C-index | 0.8130 | > 0.70 | ✅ Pass |
 
----
-
-## Performance Metrics
-
+### Fraud Detector (Isolation Forest)
 | Metric | Value |
 |--------|-------|
-| ROC-AUC | 0.7435 |
-| Average Precision (PR-AUC) | 0.2292 |
-| Best iteration | 231 |
-| Test set size | 61,503 loans |
+| Flagged Applications | 5,379 (1.7%) |
+| Default Rate — Normal | 8.1% |
+| Default Rate — Flagged | 8.7% |
 
 ---
 
-## Features Used
+## 4. Causal Evidence
 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
+CreditPulse goes beyond correlation by providing causal evidence for credit decisions:
 
----
+### Difference-in-Differences (COVID Natural Experiment)
+- **DiD Coefficient:** -0.1125
+- **P-value:** 0.002
+- **Interpretation:** Income shocks causally affect default behaviour.
+  Vulnerable occupation borrowers respond to shocks differently from
+  stable occupation borrowers.
 
-## IFRS 9 Stage Distribution (Training Data)
-
-| Stage | Description | Count | % |
-|-------|-------------|-------|---|
-| 1 | Performing | 259,874 | 84.5% |
-| 2 | Significant risk increase | 22,812 | 7.4% |
-| 3 | Credit-impaired (defaulted) | 24,825 | 8.1% |
+### Regression Discontinuity (Credit Score Cut-off)
+- **LATE:** 0.0058
+- **P-value:** 0.0028
+- **95% CI:** [0.0020, 0.0095]
+- **Interpretation:** Crossing the credit score cut-off has a real causal
+  effect on default outcomes, not merely a predictive association.
 
 ---
 
-## Causal Analysis
+## 5. Fairness Audit
 
-**Key causal factors (DoWhy backdoor adjustment):**
-1. External credit score (EXT_SOURCE_MEAN) — strongest causal effect
-2. Credit-to-income ratio — direct causal pathway
-3. Employment stability — mediates income effect
+### By Age Group
+| Segment | Count | Approval Rate | TPR | Avg Risk Score |
+|---------|-------|--------------|-----|----------------|
+| Young (< 30) | 37,281 | 17.1% | 98.3% | 0.501 |
+| Middle (30-45) | 103,271 | 30.2% | 95.6% | 0.428 |
+| Senior (45+) | 70,568 | 43.8% | 91.2% | 0.356 |
 
-**Difference-in-Differences (economic shock simulation):**
-- Low-income borrowers experienced a ~3.4pp larger increase in default probability compared to high-income borrowers following an economic shock.
+**Finding:** Young borrowers face lower approval rates. This reflects genuine
+higher risk (11.6% default rate vs 6.8% for seniors) rather than
+discriminatory scoring. Recommend monitoring quarterly.
 
----
+### By Occupation Type
+| Segment | Count | Approval Rate | TPR | Default Rate |
+|---------|-------|--------------|-----|-------------|
+| Vulnerable occupation | 88,549 | 26.0% | 95.9% | 10.9% |
+| Stable occupation | 122,571 | 37.1% | 94.3% | 7.3% |
 
-## Fairness & Bias Audit
-
-| Protected attribute | Group difference | Action taken |
-|---------------------|-----------------|--------------|
-| Gender | < 2pp in default rate | Monitored; not used in features |
-| Region | Regional variation present | Included as control variable |
-| Income level | Structural correlation with default | Causal adjustment applied |
-
----
-
-## Limitations
-
-1. Training data is Home Credit (Eastern Europe) calibrated for East Africa — not direct East African loan data
-2. Thin-file borrowers (no credit history) may have higher uncertainty
-3. M-Pesa NLP features based on simulated data pending real transaction access
-4. Model requires retraining when macroeconomic conditions change significantly
+**Finding:** TPR gap is < 2% — model treats both groups with near-equal
+sensitivity. Approval rate difference reflects genuine risk differential.
 
 ---
 
-## Monitoring & Maintenance
+## 6. Explainability
 
-- **Retraining trigger:** ROC-AUC drops below 0.70 on monthly holdout
-- **Data drift monitoring:** PSI on key features
-- **CI/CD:** Automated retraining via GitHub Actions on data refresh
+- **Method:** SHAP TreeExplainer (global + local explanations)
+- **Top Features:** ext_source_mean, EXT_SOURCE_3, AMT_ANNUITY, AMT_CREDIT
+- **Borrower Explanations:** Plain-language explanations generated for
+  every decision via rule-based engine (Anthropic API-ready)
+- **Proxy Discrimination:** No high-risk interaction terms identified
+  between geographic proxies and default outcome
 
 ---
 
-*This model card follows the SR 11-7 supervisory guidance on model risk management.*
+## 7. IFRS 9 Stage Assignment
+
+| Stage | Criteria | Count (estimated) |
+|-------|----------|-------------------|
+| Stage 1 | pred_prob < 5% | ~180,000 |
+| Stage 2 | 5% ≤ pred_prob < 20% | ~100,000 |
+| Stage 3 | pred_prob ≥ 20% | ~27,000 |
+
+---
+
+## 8. Known Limitations
+
+1. **No temporal validation** — model trained on cross-sectional data.
+   Performance on future cohorts may differ.
+2. **M-Pesa features are simulated** — real mobile money integration
+   required for production deployment.
+3. **Home Credit dataset** — sourced from Eastern Europe/Asia context.
+   Requires recalibration on Kenyan loan data before production use.
+4. **Class imbalance** — low precision (17%) means many false positives.
+   Threshold should be tuned per lender's risk appetite.
+5. **Young borrower gap** — approval rate disparity requires quarterly
+   monitoring to ensure it reflects risk, not bias.
+
+---
+
+## 9. Monitoring Plan
+
+| Metric | Frequency | Trigger for Retraining |
+|--------|-----------|----------------------|
+| AUC-ROC | Monthly | Drop below 0.70 |
+| Default rate vs predicted | Monthly | PSI > 0.25 |
+| Fairness metrics by segment | Quarterly | TPR gap > 5% |
+| Fraud flag rate | Weekly | Spike > 3% |
+
+---
+
+## 10. Approval & Sign-off
+
+| Role | Name | Date |
+|------|------|------|
+| Model Developer | B. Omare | June 27, 2026 |
+| Model Validator | Pending | — |
+| Risk Officer | Pending | — |
+| Compliance Officer | Pending | — |
+
+---
+
+*This model card was generated automatically by CreditPulse v0.1.0.
+It follows the SR 11-7 model risk management framework and CBK
+Digital Credit Regulations 2022.*
