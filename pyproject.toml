@@ -70,8 +70,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/B-Omare/creditpulse"
-Repository = "https://github.com/B-Omare/creditpulse"
+Homepage = "https://github.com/B-Omare/credit-risk-intelligence"
+Repository = "https://github.com/B-Omare/credit-risk-intelligence"
 
 [tool.black]
 line-length = 88
@@ -84,7 +84,7 @@ select = ["E", "F", "I", "N", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --cov=creditpulse --cov-report=term-missing"
+addopts = "-v --tb=short"
 
 [tool.mypy]
 python_version = "3.11"
