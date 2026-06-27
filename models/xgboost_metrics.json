@@ -1,0 +1,24 @@
+{
+  "roc_auc": 0.743539581983859,
+  "average_precision": 0.22922453401168477,
+  "n_train": 246008,
+  "n_test": 61503,
+  "default_rate": 0.08072881945686496,
+  "best_iteration": 231,
+  "features_used": [
+    "AGE_YEARS",
+    "EMPLOYMENT_YEARS",
+    "AMT_INCOME_TOTAL",
+    "AMT_CREDIT",
+    "AMT_ANNUITY",
+    "CREDIT_INCOME_RATIO",
+    "ANNUITY_INCOME_RATIO",
+    "LTV_RATIO",
+    "EXT_SOURCE_MEAN",
+    "EXT_SOURCE_MIN",
+    "CNT_CHILDREN",
+    "CNT_FAM_MEMBERS",
+    "REGION_RATING_CLIENT",
+    "INCOME_PER_PERSON"
+  ]
+}
