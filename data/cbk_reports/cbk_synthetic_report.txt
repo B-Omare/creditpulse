@@ -1,0 +1,88 @@
+CENTRAL BANK OF KENYA
+FINANCIAL SECTOR STABILITY REPORT 2023
+
+CHAPTER 1: CREDIT RISK IN THE KENYAN BANKING SECTOR
+
+The Kenyan banking sector maintained overall stability in 2023 despite headwinds
+from elevated inflation and exchange rate pressures. The ratio of gross non-performing
+loans (NPLs) to gross loans stood at 14.8 percent as at December 2023, compared to
+13.3 percent in December 2022.
+
+Credit risk remained the most significant risk facing the banking sector. The increase
+in NPLs was largely attributable to difficult operating conditions in key sectors
+including trade, real estate, and manufacturing. Drought conditions in parts of the
+country adversely affected agricultural lending portfolios.
+
+CHAPTER 2: MOBILE MONEY AND DIGITAL CREDIT
+
+Mobile money continued to deepen financial inclusion in Kenya. M-Pesa transaction
+volumes grew by 18 percent in 2023, with over 67 million registered accounts.
+Digital credit products disbursed through mobile platforms reached KES 850 billion,
+representing a 23 percent increase from the previous year.
+
+The Central Bank of Kenya notes that digital credit borrowers exhibit distinct
+repayment behaviour compared to traditional borrowers. Mobile money transaction
+frequency and balance stability are strong predictors of creditworthiness among
+thin-file borrowers who lack formal credit histories.
+
+CHAPTER 3: REGULATORY FRAMEWORK FOR CREDIT RISK
+
+Under the Banking Act and CBK Prudential Guidelines, all licensed institutions are
+required to classify loans into the following categories:
+
+Stage 1: Performing loans with no significant increase in credit risk since origination.
+Expected credit losses are measured on a 12-month basis.
+
+Stage 2: Underperforming loans with significant increase in credit risk. Expected
+credit losses are measured on a lifetime basis.
+
+Stage 3: Non-performing loans that are credit-impaired. Full lifetime expected
+credit losses must be provisioned.
+
+This classification aligns with International Financial Reporting Standard 9 (IFRS 9)
+which became effective for Kenyan banks in January 2018.
+
+CHAPTER 4: CONSUMER PROTECTION IN DIGITAL LENDING
+
+The Central Bank of Kenya Digital Credit Providers Regulations 2022 require all
+digital lenders to disclose the total cost of credit, including all fees and charges,
+before loan disbursement. Lenders must provide borrowers with a clear explanation
+of the factors used in credit scoring decisions.
+
+Borrowers have the right to access their credit information and to dispute inaccurate
+entries in credit reference bureau records. Digital lenders are prohibited from using
+discriminatory variables in credit scoring algorithms.
+
+CHAPTER 5: CAUSAL DRIVERS OF DEFAULT IN EAST AFRICAN MARKETS
+
+Research conducted in partnership with FSD Africa identified the following causal
+drivers of credit default in East African digital lending markets:
+
+1. Income volatility: Borrowers with irregular income streams show 2.3 times higher
+default rates than salaried employees, after controlling for loan size and tenure.
+
+2. Loan stacking: Borrowers with three or more concurrent digital loans have a
+significantly elevated probability of default within 90 days.
+
+3. Macro shocks: Drought and inflation events cause measurable increases in default
+rates among agricultural and informal sector borrowers, with effects persisting for
+6 to 12 months post-shock.
+
+4. M-Pesa balance trends: A declining 30-day average M-Pesa balance is a leading
+indicator of impending default, preceding missed payments by an average of 21 days.
+
+CHAPTER 6: RECOMMENDATIONS FOR RESPONSIBLE LENDING
+
+The Central Bank of Kenya recommends that digital lenders adopt the following
+responsible lending practices:
+
+- Conduct affordability assessments before disbursing credit
+- Use alternative data including mobile money transaction history responsibly
+- Provide plain-language explanations for all credit decisions
+- Implement early warning systems to identify borrowers in financial distress
+- Offer restructuring options to borrowers experiencing temporary income shocks
+- Ensure credit scoring models are regularly audited for fairness and bias
+
+Lenders that adopt causal AI approaches to credit risk assessment are better
+positioned to distinguish between borrowers experiencing temporary shocks and
+those with structural repayment challenges.
