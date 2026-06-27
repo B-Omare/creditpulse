@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 RAW_PATH = Path("data/raw/application_train.csv")
 OUTPUT_PATH = Path("data/processed/loans_clean.parquet")
 
-
 COLS_TO_KEEP = [
     "SK_ID_CURR", "TARGET", "CODE_GENDER", "FLAG_OWN_CAR", "FLAG_OWN_REALTY",
     "CNT_CHILDREN", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
@@ -36,11 +35,19 @@ ANOMALY_REPLACEMENTS = {
     "DAYS_EMPLOYED": 365243,
 }
 
+CATEGORICAL_COLS = [
+    "NAME_INCOME_TYPE",
+    "NAME_EDUCATION_TYPE",
+    "NAME_FAMILY_STATUS",
+    "NAME_HOUSING_TYPE",
+    "WEEKDAY_APPR_PROCESS_START",
+]
+
 
 def load_raw(path: Path = RAW_PATH) -> pd.DataFrame:
-    logger.info(f"Loading raw data from {path}")
+    logger.info("Loading raw data from %s", path)
     df = pd.read_csv(path, usecols=lambda c: c in COLS_TO_KEEP)
-    logger.info(f"Loaded {len(df):,} rows, {df.shape[1]} columns")
+    logger.info("Loaded %d rows, %d columns", len(df), df.shape[1])
     return df
 
 
@@ -48,7 +55,7 @@ def fix_anomalies(df: pd.DataFrame) -> pd.DataFrame:
     for col, sentinel in ANOMALY_REPLACEMENTS.items():
         if col in df.columns:
             mask = df[col] == sentinel
-            logger.info(f"Replacing {mask.sum()} anomalous values in {col}")
+            logger.info("Replacing %d anomalous values in %s", mask.sum(), col)
             df.loc[mask, col] = np.nan
     return df
 
@@ -62,13 +69,14 @@ def impute_missing(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def encode_categoricals(df: pd.DataFrame) -> pd.DataFrame:
-    binary_map = {"Y": 1, "N": 0, "M": 1, "F": 0, "XNA": np.nan}
+    binary_map: dict = {"Y": 1, "N": 0, "M": 1, "F": 0, "XNA": np.nan}
     for col in ["CODE_GENDER", "FLAG_OWN_CAR", "FLAG_OWN_REALTY"]:
         if col in df.columns:
             df[col] = df[col].map(binary_map)
-    df = pd.get_dummies(df, columns=["NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE",
-                                      "NAME_FAMILY_STATUS", "NAME_HOUSING_TYPE",
-                                      "WEEKDAY_APPR_PROCESS_START"], drop_first=True)
+    # Only one-hot encode columns that are actually present in this DataFrame
+    cols_present = [c for c in CATEGORICAL_COLS if c in df.columns]
+    if cols_present:
+        df = pd.get_dummies(df, columns=cols_present, drop_first=True)
     return df
 
 
@@ -79,7 +87,7 @@ def clean(input_path: Path = RAW_PATH, output_path: Path = OUTPUT_PATH) -> pd.Da
     df = encode_categoricals(df)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(output_path, index=False)
-    logger.info(f"Saved clean data to {output_path} — {len(df):,} rows")
+    logger.info("Saved clean data to %s — %d rows", output_path, len(df))
     return df
 
 
