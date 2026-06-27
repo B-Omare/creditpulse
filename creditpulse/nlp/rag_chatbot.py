@@ -70,8 +70,9 @@ class CreditPulseRAG:
                     "content": f"Context from CBK reports:\n\n{context}\n\nQuestion: {question}"
                 }],
             )
-            return response.content[0].text
+            return str(response.content[0].text)
         except ImportError:
             return f"[LLM not available] Relevant context:\n\n{context}"
         except Exception as e:
             return f"Error: {e}\n\nRelevant context:\n\n{context}"
+
